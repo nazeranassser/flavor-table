@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flavor Table – Search Recipes</title>
+  <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+  <nav>
+    <a href="index.html">Search Recipes</a>
+    <a href="randomRecipes.html">Random Recipe</a>
+    <a href="favorites.html"> Favorites</a>
+  </nav>
+
+  <main>
+    <h1>Search Recipes by Ingredients</h1>
+    <form id="searchForm">
+      <input type="text" id="ingredientsInput" placeholder="chicken, rice, tomato" required />
+      <button type="submit">Search</button>
+    </form>
+
+    <section id="results"></section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
