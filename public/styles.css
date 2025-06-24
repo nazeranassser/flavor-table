@@ -1,0 +1,179 @@
+/* عام */
+body {
+  font-family: 'Open Sans', sans-serif;
+  color: #333;
+  background: #f9f9f9;
+  margin: 0;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+nav ul {
+  display: flex;
+  list-style-type: none;
+  margin: 0;
+  padding: 0 20px;
+}
+
+nav li {
+  margin: 0 15px;
+  position: relative;
+}
+
+nav a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 600;
+  padding: 15px 0;
+  display: block;
+  transition: color 0.3s ease;
+}
+
+nav a:hover,
+nav a.active {
+  color: #007BFF;
+}
+
+nav li::after {
+  content: '';
+  height: 3px;
+  width: 0;
+  background: #007BFF;
+  position: absolute;
+  left: 0;
+  bottom: 5px;
+  transition: width 0.3s ease;
+}
+
+nav li:hover::after,
+nav a.active + nav li::after {
+  width: 100%;
+}
+
+/* تصميم البورغر للشاشات الصغيرة */
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  padding: 15px;
+}
+
+.menu-toggle span {
+  height: 3px;
+  width: 25px;
+  background: #333;
+  margin: 4px 0;
+  transition: 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  nav ul {
+    display: none;
+    flex-direction: column;
+    background: #fff;
+    width: 100%;
+  }
+
+  nav ul.active {
+    display: flex;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+}
+
+
+/* مركز محتوى main أفقياً وعمودياً */
+main {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* مدير تنسيق بطاقات الوصفات */
+section {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+
+.recipe-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: transform 0.2s ease;
+}
+.recipe-card:hover {
+  transform: translateY(-4px);
+}
+.recipe-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+.recipe-card h3 {
+  font-size: 1.1rem;
+  margin: 8px 0;
+}
+.recipe-card button {
+  align-self: center;
+  padding: 8px 16px;
+  background: #007BFF;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.recipe-card button:hover {
+  background: #0056b3;
+}
+
+/* صفحة الوصفة العشوائية */
+#randomResult {
+  background: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-top: 20px;
+}
+
+#randomResult img {
+  width: 100%;
+  max-width: 400px;
+  display: block;
+  margin: 10px auto;
+}
+
+/* صفحة المفضلة */
+#favoritesList > div {
+  display: inline-block;
+  width: 200px;
+  margin: 10px;
+  vertical-align: top;
+}
+
+#favoritesList img {
+  width: 100%;
+  border-radius: 6px;
+}

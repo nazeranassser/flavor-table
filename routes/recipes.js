@@ -3,6 +3,7 @@ const axios = require('axios');
 const BASE = 'https://api.spoonacular.com';
 
 router.get('/random', async (req, res) => {
+   console.log('🔁 /recipes/random hit');
   try {
     const { data } = await axios.get(`${BASE}/recipes/random`, {
       params: { number: 1, apiKey: process.env.SPOON_KEY }
