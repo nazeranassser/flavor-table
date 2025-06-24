@@ -1,28 +1,47 @@
-async function testSearch() {
-  console.log('Search listener ready');
-}
-testSearch();
+console.log('Script loaded');
 
-// البحث بالمكوّنات
-document.getElementById('searchForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const q = document.getElementById('ingredientsInput').value;
-   console.log('Fetching search for:', q);
-  const res = await fetch(`/recipes/search?ingredients=${q}`);
-  const data = await res.json();
-  console.log('Search results:', data);
-  renderCards(data);
+window.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM ready');
+
+  // التعامل مع نموذج البحث إذا كان موجود
+  const form = document.getElementById('searchForm');
+  console.log('Looking for #searchForm:', form);
+  if (form) {
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const q = document.getElementById('ingredientsInput').value;
+      console.log('Fetching search for:', q);
+      const res = await fetch(`/recipes/search?ingredients=${q}`);
+      console.log('Search status:', res.status);
+      const data = await res.json();
+      console.log('Search results:', data);
+      renderCards(data);
+    });
+  }
+
+  // التعامل مع زر الوصفة العشوائية إذا كان موجود
+  const btn = document.getElementById('randomBtn');
+  console.log('Looking for #randomBtn:', btn);
+  if (btn) {
+    btn.onclick = async () => {
+      console.log('🔁 Button clicked');
+      const res = await fetch('/recipes/random');
+      console.log('Response status:', res.status);
+      const data = await res.json();
+      console.log('Random recipe data:', data);
+      renderRandom(data);
+    };
+  }
+
+  // تحميل المفضلات عند وجود القسم الخاص بها في الصفحة
+  if (document.getElementById('favoritesList')) {
+    console.log('Loading favorites...');
+    loadFavorites();
+  }
 });
 
-// توليد وصفة عشوائية
-document.getElementById('randomBtn').onclick = async () => {
-  const res = await fetch('/recipes/random');
-  const data = await res.json();
-  console.log('Random recipe:', data);
-  renderRandom(data);
-};
+// دوال عرض النتائج
 
-// مثال دوال عرض (يمكن تعديلها حسب التصميم)
 function renderCards(list) {
   const sec = document.getElementById('results');
   sec.innerHTML = '';
@@ -47,9 +66,36 @@ function renderRandom(r) {
   `;
 }
 
+// حفظ الوصفة في localStorage مع التحقق من التكرار
 function saveFav(recipe) {
   const favs = JSON.parse(localStorage.getItem('favs') || '[]');
-  favs.push(recipe);
-  localStorage.setItem('favs', JSON.stringify(favs));
-  alert('Saved!');
+  if (!favs.some(r => r.title === recipe.title)) {
+    favs.push(recipe);
+    localStorage.setItem('favs', JSON.stringify(favs));
+    alert('Saved!');
+  } else {
+    alert('Recipe already saved!');
+  }
+}
+
+// تحميل وعرض المفضلات من localStorage في صفحة المفضلة
+function loadFavorites() {
+  const savedRecipes = JSON.parse(localStorage.getItem('favs')) || [];
+  const favoritesList = document.getElementById('favoritesList');
+  favoritesList.innerHTML = '';
+
+  if (savedRecipes.length === 0) {
+    favoritesList.innerHTML = '<p>No favorite recipes saved yet.</p>';
+    return;
+  }
+
+  savedRecipes.forEach(recipe => {
+    const recipeElement = document.createElement('div');
+    recipeElement.classList.add('recipe');
+    recipeElement.innerHTML = `
+      <h3>${recipe.title}</h3>
+      ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.title}" width="100">` : ''}
+    `;
+    favoritesList.appendChild(recipeElement);
+  });
 }
