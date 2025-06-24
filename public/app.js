@@ -7,6 +7,7 @@ testSearch();
 document.getElementById('searchForm').addEventListener('submit', async e => {
   e.preventDefault();
   const q = document.getElementById('ingredientsInput').value;
+   console.log('Fetching search for:', q);
   const res = await fetch(`/recipes/search?ingredients=${q}`);
   const data = await res.json();
   console.log('Search results:', data);

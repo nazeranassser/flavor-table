@@ -20,6 +20,7 @@ router.get('/random', async (req, res) => {
 });
 
 router.get('/search', async (req, res) => {
+   console.log('🌐 Search endpoint called with:', req.query.ingredients);
   const { ingredients } = req.query;
   if (!ingredients) return res.status(400).json({ error: 'No ingredients' });
   try {
