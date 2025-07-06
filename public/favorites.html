@@ -22,8 +22,29 @@
   <main>
     <h1>Your Favorite Recipes</h1>
     <section id="favoritesList"></section>
-  </main>
+     <form id="updateForm" style="display:none;">
+  <h2>Edit Recipe</h2>
+  <input type="hidden" id="updateId">
+  
+  <label>Title:</label><br>
+  <input type="text" id="updateTitle"><br>
+  
+  <label>Image (URL):</label><br>
+  <input type="text" id="updateImage"><br>
+  
+  <label>Ingredients (comma-separated):</label><br>
+  <input type="text" id="updateIngredients"><br>
+  
+  <label>Instructions:</label><br>
+  <textarea id="updateInstructions"></textarea><br>
+  
+  <button type="submit">Save Changes</button>
+</form>
 
-  <script src="app.js"></script>
+  </main>
+  
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script type="module" src="app.js"></script>
 </body>
 </html>
