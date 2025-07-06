@@ -1,43 +1,36 @@
-const router = require('express').Router();
-const axios = require('axios');
-const BASE = 'https://api.spoonacular.com';
+const express = require('express');
+const router = express.Router();
+const pool = require('../db');
 
-router.get('/random', async (req, res) => {
-   console.log('🔁 /recipes/random hit');
+// جلب كل الوصفات
+router.get('/all', async (req, res) => {
   try {
-    const { data } = await axios.get(`${BASE}/recipes/random`, {
-      params: { number: 1, apiKey: process.env.SPOON_KEY }
-    });
-    const r = data.recipes[0];
-    res.json({
-      title: r.title,
-      image: r.image,
-      instructions: r.instructions,
-      ingredients: r.extendedIngredients.map(i => i.original)
-    });
-  } catch {
-    res.status(500).json({ error: 'API Error' });
-  }
+    const { rows } = await pool.query('SELECT * FROM recipes ORDER BY id');
+    res.json(rows);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-router.get('/search', async (req, res) => {
-   console.log('🌐 Search endpoint called with:', req.query.ingredients);
-  const { ingredients } = req.query;
-  if (!ingredients) return res.status(400).json({ error: 'No ingredients' });
+// حذف وصفة
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    const { data } = await axios.get(`${BASE}/recipes/findByIngredients`, {
-      params: { ingredients, number: 10, apiKey: process.env.SPOON_KEY }
-    });
-    res.json(data.map(r => ({
-      id: r.id,
-      title: r.title,
-      image: r.image,
-      usedIngredients: r.usedIngredients.map(i => i.name),
-      missedIngredients: r.missedIngredients.map(i => i.name)
-    })));
-  } catch {
-    res.status(500).json({ error: 'API Error' });
-  }
+    await pool.query('DELETE FROM recipes WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// مثال للتحديث (اختياري):
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, image, instructions, ingredients, readyIn } = req.body;
+  try {
+    const { rows } = await pool.query(`
+      UPDATE recipes
+      SET title=$1, image=$2, instructions=$3, ingredients=$4, readyIn=$5
+      WHERE id = $6 RETURNING *`,
+      [title, image, instructions, JSON.stringify(ingredients), readyIn, id]);
+    res.json(rows[0]);
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 module.exports = router;

@@ -3,7 +3,6 @@ console.log('Script loaded');
 window.addEventListener('DOMContentLoaded', () => {
   console.log('DOM ready');
 
-  // التعامل مع نموذج البحث إذا كان موجود
   const form = document.getElementById('searchForm');
   console.log('Looking for #searchForm:', form);
   if (form) {
@@ -11,15 +10,20 @@ window.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const q = document.getElementById('ingredientsInput').value;
       console.log('Fetching search for:', q);
-      const res = await fetch(`/recipes/search?ingredients=${q}`);
-      console.log('Search status:', res.status);
+      const res = await fetch(`/recipes/search?ingredients=${encodeURIComponent(q)}`);
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+
       const data = await res.json();
       console.log('Search results:', data);
       renderCards(data);
+
+      console.log('Search status:', res.status);
     });
   }
 
-  // التعامل مع زر الوصفة العشوائية إذا كان موجود
   const btn = document.getElementById('randomBtn');
   console.log('Looking for #randomBtn:', btn);
   if (btn) {
@@ -33,15 +37,44 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // تحميل المفضلات عند وجود القسم الخاص بها في الصفحة
-  if (document.getElementById('favoritesList')) {
+  const favSec = document.getElementById('favoritesList');
+  if (favSec) {
     console.log('Loading favorites...');
     loadFavorites();
   }
+
+  // ✅ Handle update form submit
+  const updateForm = document.getElementById('updateForm');
+  if (updateForm) {
+    updateForm.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const id = document.getElementById('updateId').value;
+      const updatedRecipe = {
+        title: document.getElementById('updateTitle').value,
+        image: document.getElementById('updateImage').value,
+        ingredients: JSON.stringify(
+          document.getElementById('updateIngredients').value
+            .split(',')
+            .map(i => i.trim())
+        ),
+        instructions: document.getElementById('updateInstructions').value,
+      };
+
+      try {
+        await axios.put(`/api/recipes/${id}`, updatedRecipe);
+        alert('Recipe updated successfully');
+        updateForm.style.display = 'none';
+        loadFavorites(); // Reload updated list
+      } catch (err) {
+        console.error(err);
+        alert('An error occurred while updating');
+      }
+    });
+  }
 });
 
-// دوال عرض النتائج
-
+// 📦 Render recipe cards (for search or random)
 function renderCards(list) {
   const sec = document.getElementById('results');
   sec.innerHTML = '';
@@ -51,6 +84,7 @@ function renderCards(list) {
     const btn = document.createElement('button');
     btn.textContent = 'Save';
     btn.onclick = () => saveFav(r);
+
     div.append(btn);
     sec.append(div);
   });
@@ -66,36 +100,79 @@ function renderRandom(r) {
   `;
 }
 
-// حفظ الوصفة في localStorage مع التحقق من التكرار
-function saveFav(recipe) {
-  const favs = JSON.parse(localStorage.getItem('favs') || '[]');
-  if (!favs.some(r => r.title === recipe.title)) {
-    favs.push(recipe);
-    localStorage.setItem('favs', JSON.stringify(favs));
-    alert('Saved!');
-  } else {
-    alert('Recipe already saved!');
+// ✅ Save a recipe to PostgreSQL
+async function saveFav(recipe) {
+  try {
+    const res = await axios.post('/api/recipes', {
+      title: recipe.title,
+      image: recipe.image,
+      instructions: recipe.instructions,
+      ingredients: recipe.ingredients,
+      readyIn: recipe.readyIn || null
+    });
+    alert('Recipe saved to database');
+  } catch (err) {
+    console.error(err);
+    alert('Error while saving');
   }
 }
 
-// تحميل وعرض المفضلات من localStorage في صفحة المفضلة
-function loadFavorites() {
-  const savedRecipes = JSON.parse(localStorage.getItem('favs')) || [];
-  const favoritesList = document.getElementById('favoritesList');
-  favoritesList.innerHTML = '';
+// ✅ Load saved recipes from PostgreSQL
+async function loadFavorites() {
+  try {
+    const res = await axios.get('/api/recipes/all');
+    renderFavorites(res.data);
+  } catch (err) {
+    console.error(err);
+  }
+}
 
-  if (savedRecipes.length === 0) {
-    favoritesList.innerHTML = '<p>No favorite recipes saved yet.</p>';
+// ❌ Delete recipe by ID
+async function deleteRecipe(id) {
+  try {
+    await axios.delete(`/api/recipes/${id}`);
+    loadFavorites(); // Reload after delete
+  } catch (err) {
+    console.error(err);
+    alert('Error while deleting');
+  }
+}
+
+// ✅ Display all saved favorites + edit/delete buttons
+function renderFavorites(savedRecipes) {
+  const favList = document.getElementById('favoritesList');
+  favList.innerHTML = '';
+  if (!savedRecipes.length) {
+    favList.innerHTML = '<p>No favorite recipes found.</p>';
     return;
   }
 
   savedRecipes.forEach(recipe => {
-    const recipeElement = document.createElement('div');
-    recipeElement.classList.add('recipe');
-    recipeElement.innerHTML = `
+    const div = document.createElement('div');
+    div.innerHTML = `
       <h3>${recipe.title}</h3>
-      ${recipe.image ? `<img src="${recipe.image}" alt="${recipe.title}" width="100">` : ''}
+      ${recipe.image ? `<img src="${recipe.image}" width="100">` : ''}
+      <button onclick="deleteRecipe(${recipe.id})">Delete</button>
     `;
-    favoritesList.appendChild(recipeElement);
+
+    // ✅ Create "Edit" button
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.onclick = () => {
+      document.getElementById('updateId').value = recipe.id;
+      document.getElementById('updateTitle').value = recipe.title;
+      document.getElementById('updateImage').value = recipe.image || '';
+      document.getElementById('updateIngredients').value = Array.isArray(recipe.ingredients)
+        ? recipe.ingredients.join(', ')
+        : recipe.ingredients;
+      document.getElementById('updateInstructions').value = recipe.instructions;
+      document.getElementById('updateForm').style.display = 'block';
+    };
+    div.appendChild(editBtn);
+
+    favList.appendChild(div);
   });
 }
+
+// ✅ Make deleteRecipe globally available
+window.deleteRecipe = deleteRecipe;
