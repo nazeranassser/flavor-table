@@ -6,15 +6,21 @@ const pool = require('./db');          // تحقق من أن db.js يحتوي se
 const axios = require('axios');
 const path = require('path');
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const SPOON_KEY = process.env.SPOON_KEY;
 const BASE = 'https://api.spoonacular.com';
+const authRoutes = require('./routes/auth');
+
+app.use(express.json());
+
+app.use('/api/auth', authRoutes);
 
 
 app.use(cors());
-app.use(express.json());
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // 🔍 Search recipes via Spoonacular API
