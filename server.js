@@ -81,6 +81,8 @@ app.get('/api/recipes/all', async (req, res) => {
 
 // 💾 Save a new favorite recipe to Postgres
 app.post('/api/recipes', async (req, res) => {
+  console.log('Request Body:', req.body);
+
   const { title, image, instructions, ingredients, readyIn } = req.body;
   try {
     const { rows } = await pool.query(
